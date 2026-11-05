@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ghost Data Auditor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1b1f33;--mist:#eceef6;--paper:#fff;--soft:#5d6382;--line:#dcdff0;--ghost:#6a55d8;--bad:#d42f5a;--ok:#12907c}
+*{box-sizing:border-box}body{margin:0;background:var(--mist);color:var(--ink);font:16px/1.55 "Instrument Sans",system-ui,sans-serif}
+h1,h2,h3,.disp{font-family:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;letter-spacing:-.02em;margin:0}
+a:focus-visible,button:focus-visible{outline:3px solid #ff7da0;outline-offset:3px}
+.wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+.hero{background:var(--ink);color:#fff;padding:28px 0 90px}
+nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:56px}
+.brand{font-weight:700;display:flex;gap:10px;align-items:center}
+.btn{display:inline-block;background:#ff7da0;color:#1b1f33;font-weight:600;padding:13px 26px;border-radius:12px;text-decoration:none}
+.btn:hover{background:#ff94b2}.btn.ghost{background:transparent;color:#fff;border:1px solid #565c86;margin-left:10px}
+.grid{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center}
+h1{font-size:clamp(36px,5.4vw,66px);line-height:1.02;font-weight:800}
+h1 em{font-style:normal;color:#ff7da0}
+.lead{color:#b9bedf;max-width:44ch;margin:20px 0 28px;font-size:18px}
+/* contrast card */
+.cmp{display:grid;gap:12px}
+.box{border-radius:16px;padding:18px 20px}
+.claim{background:#2a3050}
+.claim small,.truth small{color:#9aa1c8;font-size:13px}
+.claim p{margin:6px 0 0;font:700 22px "Bricolage Grotesque"}
+.claim p span{color:#5fd8bf}
+.truth{background:#fff;color:var(--ink);box-shadow:0 20px 40px -20px #000}
+.truth h3{font-size:20px;margin:6px 0 10px;color:var(--bad)}
+.truth ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.truth li{display:flex;justify-content:space-between;background:var(--mist);border-radius:10px;padding:8px 12px;font-size:14px}
+.truth li b{color:var(--bad);font-weight:600}
+.lk{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.lk input{flex:1;min-width:240px;padding:13px 16px;border:1px solid var(--line);border-radius:12px;font:inherit;background:var(--paper);color:var(--ink)}
+.lk button{border:0;background:var(--ink);color:#fff;font:600 15px inherit;font-family:inherit;padding:0 24px;border-radius:12px;cursor:pointer}
+.ex{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;font-size:13px;color:var(--soft);align-items:center}
+.ex button{border:1px solid var(--line);background:var(--paper);border-radius:99px;padding:5px 12px;font:500 13px inherit;font-family:inherit;color:var(--ink);cursor:pointer}
+.ex button:hover{border-color:var(--ghost)}
+.person{background:var(--paper);border-radius:16px;padding:20px;margin-bottom:14px}
+.person h3{font-size:22px}.person .ids{color:var(--soft);margin:4px 0 10px;font-size:14px}
+.prev{font-size:13px;background:var(--mist);border-radius:10px;padding:10px 12px;margin:0 0 12px}.prev b{font-weight:600}
+.crow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--line)}
+.pill{padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600;background:var(--mist);color:var(--soft)}
+.pill.COMPLETE{background:#d9f3ee;color:#0b6b5c}.pill.INCOMPLETE{background:#fde0e8;color:#a31d42}.pill.NOT_APPLICABLE{background:#e6e8f1;color:#535a75}
+.crow a{color:var(--ghost);font-weight:600;text-decoration:none}.crow a:hover{text-decoration:underline}
+.warn{color:var(--bad);font-size:13px;font-weight:600}
+.msg{background:var(--paper);border-radius:14px;padding:18px;color:var(--soft)}
+section{padding:70px 0 10px}
+section h2{font-size:clamp(26px,3.4vw,38px);font-weight:800;max-width:20ch}
+section>.wrap>p{color:var(--soft);max-width:56ch;margin:10px 0 30px}
+.checks{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.check{background:var(--paper);border-radius:16px;padding:20px;border-top:5px solid var(--c)}
+.check h3{font-size:18px;margin-bottom:6px}.check p{margin:0;color:var(--soft);font-size:14px}
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:0;counter-reset:s;margin-top:10px}
+.flow div{padding:4px 22px 4px 0;border-top:3px solid var(--ink);position:relative}
+.flow div::before{counter-increment:s;content:counter(s);position:absolute;top:-17px;left:0;background:var(--mist);padding-right:10px;font:800 22px "Bricolage Grotesque"}
+.flow h3{font-size:19px;margin:18px 0 4px}.flow p{margin:0;color:var(--soft);font-size:14px}
+.cta{margin:70px 0 60px;background:var(--ink);color:#fff;border-radius:24px;padding:44px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.cta h2{font-size:30px;max-width:18ch}.cta p{color:#b9bedf;margin:8px 0 0}
+footer{color:var(--soft);font-size:13px;padding-bottom:40px}
+@media(max-width:900px){.grid,.checks,.flow{grid-template-columns:1fr}.flow div{padding-bottom:18px}.btn.ghost{margin:10px 0 0}}
+</style></head><body>
+<header class="hero"><div class="wrap">
+ <nav><div class="brand disp"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M12 2C7.6 2 5 5.2 5 9v11l2.5-2 2.3 2 2.2-2 2.2 2 2.3-2 2.5 2V9c0-3.8-2.6-7-7-7z" fill="#fff"/><circle cx="9.5" cy="10" r="1.5" fill="#1b1f33"/><circle cx="14.5" cy="10" r="1.5" fill="#1b1f33"/></svg>Ghost Data Auditor</div>
+ <a class="btn" href="/dashboard">Open dashboard</a></nav>
+ <div class="grid"><div>
+  <h1>“Account deleted.” <em>Is it, though?</em></h1>
+  <p class="lead">An AI agent that looks past the green tick. It checks every database, log, export and backup to find personal data that should be gone.</p>
+  <a class="btn" href="/dashboard">See the audit results</a><a class="btn ghost" href="#how">How it works</a>
+</div>
+  <div class="cmp" aria-label="Example of a deletion that looks finished but isn't">
+   <div class="box claim"><small>What the deletion dashboard says</small><p>Account deleted <span>✓</span></p></div>
+   <div class="box truth"><small>What the evidence shows</small><h3>4 copies still exist</h3><ul>
+    <li>Search index <b>email still searchable</b></li><li>Support ticket <b>name and phone</b></li><li>Analytics export <b>linked to user</b></li><li>Backup <b>can restore the account</b></li></ul></div>
+  </div></div></div></header>
+<section id="lookup"><div class="wrap"><h2>Look up a person</h2><p>Enter an email, phone number or name from the request data. You'll see every deletion request tied to them, including ones filed under an old email, and whether the audit agrees with what the company reported.</p>
+ <div class="lk"><input id="q" placeholder="e.g. ingrid.dahl@outlook.com" aria-label="Email, phone number or name"><button id="go">Look up</button></div>
+ <div class="ex" id="ex"></div><div id="res" aria-live="polite"></div></div></section>
+<section><div class="wrap"><h2>Four things it looks for</h2><p>Deleting from the main account database is only the start. The agent checks every place data can hide or return.</p>
+ <div class="checks">
+  <div class="check" style="--c:#d42f5a"><h3>Remaining records</h3><p>Data still stored somewhere it should have been removed from.</p></div>
+  <div class="check" style="--c:#c77d0a"><h3>Exposed details</h3><p>Records that may stay, but still reveal a name, email or phone number.</p></div>
+  <div class="check" style="--c:#6a55d8"><h3>Active data flows</h3><p>Syncs or imports still copying or recreating the data.</p></div>
+  <div class="check" style="--c:#12907c"><h3>Restore risks</h3><p>Backups that could bring deleted data back.</p></div></div></div></section>
+<section id="how"><div class="wrap"><h2>From request to proof</h2><p>Every case ends with a plan and checks you can run to show it worked.</p>
+ <div class="flow"><div><h3>Find the data</h3><p>Match current and old identifiers, then search all evidence.</p></div>
+ <div><h3>Check the rules</h3><p>Decide what to delete, redact, anonymise or keep.</p></div>
+ <div><h3>Stop it returning</h3><p>Disable syncs and block risky restores.</p></div>
+ <div><h3>Prove the result</h3><p>Verification steps backed by evidence IDs.</p></div></div></div></section>
+<div class="wrap"><div class="cta"><div><h2>Ready to see the results?</h2><p>Every case, with what was found, how to fix it and how to prove it.</p></div><a class="btn" href="/dashboard">Open dashboard</a></div>
+<footer>Built for HackerRank Orchestrate · October 2026</footer></div>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const nice=s=>String(s||"").replace(/_/g," ").toLowerCase().replace(/^./,c=>c.toUpperCase());
+async function look(q){q=q.trim();const r=$("#res");if(!q){r.innerHTML='<div class="msg">Type an email, phone number or name first.</div>';return}
+ r.innerHTML='<div class="msg">Searching…</div>';
+ try{const resp=await fetch("/api/lookup?q="+encodeURIComponent(q)),d=await resp.json();
+  if(!resp.ok){r.innerHTML=`<div class="msg">${esc(d.error||"Lookup failed.")}</div>`;return}
+  if(!d.people.length){r.innerHTML='<div class="msg">No one in the request data matches that. The data is synthetic, so real personal details won\'t be found. Try one of the examples above.</div>';return}
+  r.innerHTML=d.people.map(p=>`<div class="person"><h3>${esc(p.name)}</h3><div class="ids">${esc(p.email)} · ${esc(p.phone)} · matched on ${esc(p.matched)}</div>
+  ${p.previous.length?`<div class="prev"><b>Previous details:</b> ${p.previous.map(x=>`${esc(x.field)} ${esc(x.old)} → ${esc(x.new)} (${esc(x.when)})`).join("; ")}</div>`:""}
+  ${p.cases.length?p.cases.map(c=>`<div class="crow"><div><b>${esc(c.case_id)}</b> <span class="mu">requested ${esc(c.requested)} · found via ${esc(c.via)}</span></div>
+   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${c.reported=="COMPLETE"&&c.status=="INCOMPLETE"?'<span class="warn">Report was wrong</span>':""}<span class="pill">Company said: ${esc(nice(c.reported))}</span><span class="pill ${esc(c.status)}">Audit: ${esc(nice(c.status))}</span><a href="/dashboard#${esc(c.case_id)}">View steps</a></div></div>`).join(""):'<div class="crow">No deletion requests for this person.</div>'}</div>`).join("")
+ }catch(e){r.innerHTML='<div class="msg">Could not reach the server.</div>'}}
+$("#go").onclick=()=>look($("#q").value);$("#q").onkeydown=e=>{if(e.key=="Enter")look(e.target.value)};
+fetch("/api/examples").then(r=>r.ok?r.json():[]).then(ex=>{$("#ex").innerHTML=ex.length?"Try: "+ex.map(x=>`<button data-q="${esc(x.q)}">${esc(x.label)}</button>`).join(""):"";
+ document.querySelectorAll("#ex button").forEach(b=>b.onclick=()=>{$("#q").value=b.dataset.q;look(b.dataset.q)})}).catch(()=>{});
+</script>
+</body></html>
