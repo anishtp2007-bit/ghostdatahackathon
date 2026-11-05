@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ghost Data Auditor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--mist:#eceef6;--paper:#fff;--ink:#1b1f33;--soft:#5d6382;--line:#dcdff0;--ghost:#6a55d8;--ghostbg:#ebe7fb;
+--ok:#12907c;--okbg:#d9f3ee;--bad:#d42f5a;--badbg:#fde0e8;--na:#7b839e;--nabg:#e6e8f1;--fix:#c77d0a;--fixbg:#fcefd2}
+*{box-sizing:border-box}
+body{margin:0;background:var(--mist);color:var(--ink);font:15px/1.5 "Instrument Sans",system-ui,sans-serif}
+h1,h2,h3,.disp{font-family:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;letter-spacing:-.02em;margin:0}
+button:focus-visible,input:focus-visible,select:focus-visible,.case:focus-visible{outline:3px solid var(--ghost);outline-offset:2px}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+/* hero */
+.hero{background:var(--ink);color:#fff;padding:34px 0 44px;position:relative;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:1.25fr 1fr;gap:32px;align-items:center}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;gap:12px;flex-wrap:wrap}
+.brand{font-weight:700;display:flex;gap:10px;align-items:center}
+.ghostlogo{width:26px;height:26px}
+.load{font-size:13px;color:#c9cdf0;display:flex;gap:10px;align-items:center}
+#rerun{background:#ff7da0;color:#1b1f33;border:0;border-radius:8px;padding:7px 14px;font:600 13px inherit;font-family:inherit;cursor:pointer}#rerun:disabled{opacity:.6;cursor:wait}
+.load input{color:#c9cdf0;font-size:13px;max-width:210px}
+.hero h1{font-size:clamp(30px,4.4vw,54px);line-height:1.04;font-weight:800;max-width:15ch}
+.hero h1 em{font-style:normal;color:#ff7da0}
+.hero p{color:#b9bedf;max-width:46ch;margin:16px 0 0}
+.donutbox{display:flex;align-items:center;gap:22px;justify-content:center}
+.donutbox svg{width:210px;height:210px;flex:none}
+.legend{display:grid;gap:10px}
+.legend div{display:flex;align-items:center;gap:10px;font-size:14px;color:#d9dcf3}
+.legend b{font:700 22px "Bricolage Grotesque";color:#fff;min-width:44px}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+/* overview */
+.over{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:-26px;position:relative}
+.panel{background:var(--paper);border-radius:18px;padding:22px;box-shadow:0 1px 0 var(--line),0 12px 28px -18px rgba(27,31,51,.35)}
+.panel h2{font-size:18px;margin-bottom:4px}.sub{color:var(--soft);font-size:13px;margin:0 0 14px}
+.brow{display:grid;grid-template-columns:150px 1fr 34px;gap:10px;align-items:center;margin:7px 0;font-size:13px}
+.brow span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track{height:12px;border-radius:6px;background:var(--mist);overflow:hidden}.track i{display:block;height:100%;border-radius:6px}
+.brow b{text-align:right}
+/* explorer */
+.explorer{display:grid;grid-template-columns:340px 1fr;gap:20px;margin:22px 0 60px;align-items:start}
+.side{position:static}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.chip{border:1px solid var(--line);background:var(--paper);border-radius:99px;padding:5px 12px;font:600 13px inherit;font-family:inherit;color:var(--soft);cursor:pointer}
+.chip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.search{width:100%;padding:10px 14px;border:1px solid var(--line);border-radius:10px;font:inherit;background:var(--mist)}
+.cases{max-height:70vh;min-height:200px;overflow:auto;margin-top:8px;display:grid;gap:4px}
+.case{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:10px 12px;border-radius:10px;cursor:pointer;border:1px solid transparent}
+.case:hover{background:var(--mist)}.case[aria-selected=true]{background:var(--ghostbg);border-color:var(--ghost)}
+.case b{font-weight:600}.case small{color:var(--soft)}
+.seg{grid-column:1/-1;display:flex;height:5px;border-radius:3px;overflow:hidden;background:var(--line);margin-top:4px;gap:1px}
+.badge{padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap;align-self:center}
+.COMPLETE{background:var(--okbg);color:#0b6b5c}.INCOMPLETE{background:var(--badbg);color:#a31d42}.NOT_APPLICABLE{background:var(--nabg);color:#535a75}
+/* detail */
+.dhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.dhead h2{font-size:30px;font-weight:800}
+.step .sh{display:flex;justify-content:space-between;gap:8px;cursor:pointer}.step .sh:hover .op{text-decoration:underline}.step .sh .op{flex:1}.chev{color:var(--soft);transition:transform .15s}.step.open .chev{transform:rotate(180deg)}
+.more{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px}.more p{margin:0 0 6px}.mu2{color:var(--soft)}
+.more dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:8px 0}.more dt{color:var(--soft)}.more dd{margin:0;word-break:break-all}
+@media(prefers-reduced-motion:reduce){.chev{transition:none}}
+.nav{display:flex;gap:8px;align-items:center}.nb{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:6px 12px;font:600 13px inherit;font-family:inherit;cursor:pointer;color:var(--ink)}.nb:hover{background:var(--mist)}
+.dnote{color:var(--soft);margin:6px 0 18px;max-width:62ch}
+.lanes{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.lane{background:var(--mist);border-radius:14px;padding:12px}
+.lane h3{font-size:15px;display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.lane h3 span{font:600 12px "Instrument Sans";background:var(--paper);border-radius:99px;padding:1px 9px}
+.lane p{margin:0 0 10px;font-size:12px;color:var(--soft)}
+.step{background:var(--paper);border-radius:10px;padding:10px 12px;margin-bottom:8px;border-left:4px solid var(--c)}
+.step .op{font-weight:600;font-size:14px;line-height:1.25}
+.step .raw{font:12px ui-monospace,Menlo,monospace;color:var(--soft);word-break:break-all}
+.step .where{font-size:12px;margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}
+.tag{background:var(--mist);border-radius:6px;padding:1px 7px;font-size:12px}
+.tag.st{background:var(--c);color:#fff;font-weight:600}
+.tag.ev{background:var(--ghostbg);color:#4a38b5}
+.n{font-weight:700;color:var(--soft);margin-right:6px}
+.empty{text-align:center;padding:50px 20px;color:var(--soft)}
+.empty .disp{font-size:20px;color:var(--ink)}
+.drop{margin:28px auto;max-width:520px;border:2px dashed #565c86;border-radius:16px;padding:32px;text-align:center;color:#c9cdf0}
+@media(max-width:980px){.hero-grid{grid-template-columns:1fr!important}.hero .wrap,.over,.explorer{grid-template-columns:1fr}.lanes{grid-template-columns:1fr}.side{position:static}.cases{max-height:300px}}
+@media(max-width:520px){.brow{grid-template-columns:100px 1fr 30px}.donutbox{flex-direction:column}}
+</style></head><body>
+<header class="hero"><div class="wrap" style="display:block">
+ <div class="top"><a href="/" class="brand disp" style="color:#fff;text-decoration:none" title="Back to home">
+  <svg class="ghostlogo" viewBox="0 0 24 24"><path d="M12 2C7.6 2 5 5.2 5 9v11l2.5-2 2.3 2 2.2-2 2.2 2 2.3-2 2.5 2V9c0-3.800-2.600-7-7-7z" fill="#fff"/><circle cx="9.500" cy="10" r="1.500" fill="#1b1f33"/><circle cx="14.500" cy="10" r="1.500" fill="#1b1f33"/></svg>
+  Ghost Data Auditor</a>
+  <div class="load"><span id="runinfo"></span><button id="rerun" hidden>Re-run audit</button><label>Results file <input type="file" id="file" accept=".csv"></label></div></div>
+ <div id="heroBody"></div></div></header>
+<main class="wrap" id="app"></main>
+<script>
+let cases=[],sel=null,vis=[],F={s:"ALL",q:""};
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const COL={COMPLETE:"#12907c",INCOMPLETE:"#d42f5a",NOT_APPLICABLE:"#7b839e"};
+const PH={FINDING:{t:"What we found",d:"Data that is still there, or can come back",c:"#d42f5a"},REMEDIATION:{t:"How to fix it",d:"Actions to run, in order",c:"#c77d0a"},VERIFICATION:{t:"How to prove it",d:"Checks to run afterwards",c:"#12907c"}};
+const OP={REPORT_REMAINING_RECORD:"Record that should be gone still exists",REPORT_EXPOSED_PII:"Retained record still shows personal details",REPORT_ACTIVE_DATA_FLOW:"A process is still copying this data",REPORT_RESTORE_RISK:"A backup could restore this data",DISABLE_DATA_FLOW:"Stop the process that copies the data",BLOCK_RESTORE:"Block the backup from restoring",DELETE_RECORD:"Delete the whole record",REDACT_RECORD:"Remove identifying details",ANONYMIZE_RECORD:"Make the record unlinkable",VERIFY_RECORD_ABSENT:"Check the record is gone",VERIFY_RECORD_PRESENT:"Check the required record is kept",VERIFY_RECORD_REDACTED:"Check identifying details are removed",VERIFY_RECORD_ANONYMIZED:"Check it can't be linked to the user",VERIFY_DATA_FLOW_DISABLED:"Check the copying process is off",VERIFY_RESTORE_BLOCKED:"Check restore is blocked"};
+const nice=s=>String(s||"").replace(/_/g," ");
+
+function parseCSV(t){const rows=[];let r=[],f="",q=false;for(let i=0;i<t.length;i++){const c=t[i];
+ if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}
+ else if(c=='"')q=true;else if(c==","){r.push(f);f=""}
+ else if(c=="\n"||c=="\r"){if(c=="\r"&&t[i+1]=="\n")i++;r.push(f);rows.push(r);r=[];f=""}else f+=c}
+ if(f||r.length){r.push(f);rows.push(r)}
+ const [h,...b]=rows;return b.filter(x=>x.length>1).map(x=>{const o=Object.fromEntries(h.map((k,i)=>[k.trim(),x[i]]));
+ let steps=[];try{steps=JSON.parse(o.steps_json||"[]")}catch(e){}return{case_id:o.case_id,status:o.deletion_status,steps}}).sort((a,b)=>a.case_id<b.case_id?-1:1)}
+
+async function init(){empty();try{const r=await fetch("/api/cases");if(!r.ok)throw 0;cases=await r.json();render()}catch(e){}}
+function load(f){f.text().then(t=>{cases=parseCSV(t);sel=null;render()})}
+$("#file").onchange=e=>e.target.files[0]&&load(e.target.files[0]);
+addEventListener("dragover",e=>e.preventDefault());addEventListener("drop",e=>{e.preventDefault();e.dataTransfer.files[0]&&load(e.dataTransfer.files[0])});
+function empty(){$("#heroBody").innerHTML=`<h1>Was their data <em>really</em> deleted?</h1><p>Load your output.csv to see which deletion requests are truly finished, and what is still lingering.</p><div class="drop">Drop <b>output.csv</b> here, or choose it above.<br><small>Or run <code>python3 frontend/server.py</code> and it loads automatically.</small></div>`;$("#app").innerHTML=""}
+
+function donut(d){const tot=d.reduce((a,x)=>a+x.v,0)||1,R=80,C=2*Math.PI*R;let off=0;
+ return `<svg viewBox="0 0 200 200" role="img" aria-label="Status split"><circle cx="100" cy="100" r="${R}" fill="none" stroke="#2c3150" stroke-width="26"/>`+
+ d.map(x=>{const len=x.v/tot*C,s=`<circle cx="100" cy="100" r="${R}" fill="none" stroke="${x.c}" stroke-width="26" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 100 100)"/>`;off+=len;return s}).join("")+
+ `<text x="100" y="98" text-anchor="middle" fill="#fff" font-family="Bricolage Grotesque" font-weight="800" font-size="38">${Math.round((d[0].v/tot)*100)}%</text><text x="100" y="120" text-anchor="middle" fill="#b9bedf" font-size="12">fully deleted</text></svg>`}
+
+function bars(items,color){const m=Math.max(1,...items.map(i=>i[1]));return items.map(([k,v])=>`<div class="brow"><span title="${esc(k)}">${esc(nice(k))}</span><div class="track"><i style="width:${v/m*100}%;background:${color}"></i></div><b>${v}</b></div>`).join("")||'<p class="sub">Nothing to show.</p>'}
+function tally(fn){const m={};cases.forEach(c=>c.steps.forEach(s=>{const k=fn(s);if(k)m[k]=(m[k]||0)+1}));return Object.entries(m).sort((a,b)=>b[1]-a[1])}
+
+function render(){if(!window.__h&&location.hash.length>1){sel=decodeURIComponent(location.hash.slice(1));window.__h=1;setTimeout(()=>$("#detail")&&$("#detail").scrollIntoView({block:"start"}),80)}
+ const n=s=>cases.filter(c=>c.status==s).length,ok=n("COMPLETE"),bad=n("INCOMPLETE"),na=n("NOT_APPLICABLE");
+ $("#heroBody").innerHTML=`<div class="hero-grid" style="display:grid;grid-template-columns:1.25fr 1fr;gap:32px;align-items:center">
+  <div><h1>${bad} of ${cases.length} deletions are <em>still haunted</em></h1><p>${ok} cases are proven clean. ${bad} still hold personal data or a way for it to return. ${na} were never authorised for deletion.</p></div>
+  <div class="donutbox">${donut([{v:ok,c:COL.COMPLETE},{v:bad,c:COL.INCOMPLETE},{v:na,c:COL.NOT_APPLICABLE}])}
+  <div class="legend"><div><i class="dot" style="background:${COL.COMPLETE}"></i><b>${ok}</b>Complete</div><div><i class="dot" style="background:${COL.INCOMPLETE}"></i><b>${bad}</b>Incomplete</div><div><i class="dot" style="background:${COL.NOT_APPLICABLE}"></i><b>${na}</b>Not applicable</div></div></div></div>`;
+ const fnd=s=>s.phase=="FINDING"?s.operation:null;
+ $("#app").innerHTML=`<section class="over">
+  <div class="panel"><h2>Where the leftovers live</h2><p class="sub">Findings per system across all cases</p>${bars(tally(s=>s.phase=="FINDING"?s.system_id:null).slice(0,7),"#d42f5a")}</div>
+  <div class="panel"><h2>What kind of problem it is</h2><p class="sub">Findings by type</p>${bars(tally(fnd).map(([k,v])=>[k.replace("REPORT_",""),v]),"#6a55d8")}</div></section>
+  <section class="explorer"><div class="panel side"><h2>Cases</h2>
+   <div class="chips" role="group" aria-label="Filter by status">${[["ALL","All",cases.length],["INCOMPLETE","Incomplete",bad],["COMPLETE","Complete",ok],["NOT_APPLICABLE","N/A",na]].map(([k,l,c])=>`<button class="chip" data-s="${k}" aria-pressed="${F.s==k}">${l} ${c}</button>`).join("")}</div>
+   <input class="search" id="q" placeholder="Search case, system or resource" value="${esc(F.q)}" aria-label="Search cases"><div class="cases" id="list" role="listbox"></div></div>
+  <div class="panel" id="detail"></div></section>`;
+ document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{F.s=b.dataset.s;document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x==b));list()});
+ $("#q").oninput=e=>{F.q=e.target.value;list()};list();detail()}
+
+function list(){const q=F.q.toLowerCase();
+ const f=cases.filter(c=>(F.s=="ALL"||c.status==F.s)&&(!q||c.case_id.toLowerCase().includes(q)||c.steps.some(s=>`${s.system_id} ${s.resource_id}`.toLowerCase().includes(q))));
+ vis=f;if(!f.some(c=>c.case_id==sel)&&f.length){sel=f[0].case_id;setTimeout(detail,0)}
+ $("#list").innerHTML=f.map(c=>{const k=p=>c.steps.filter(s=>s.phase==p).length;
+  return `<div class="case" role="option" tabindex="0" data-id="${esc(c.case_id)}" aria-selected="${c.case_id==sel}"><b>${esc(c.case_id)}</b><span class="badge ${c.status}">${nice(c.status)}</span>
+  <small>${c.steps.length} step${c.steps.length==1?"":"s"}</small><span></span><div class="seg">${["FINDING","REMEDIATION","VERIFICATION"].map(p=>k(p)?`<i style="flex:${k(p)};background:${PH[p].c}"></i>`:"").join("")}</div></div>`}).join("")||'<p class="sub" style="padding:10px">No cases match.</p>';
+ const cur=document.querySelector('.case[aria-selected="true"]');if(cur)cur.scrollIntoView({block:"nearest"});
+ document.querySelectorAll(".case").forEach(r=>{const go=()=>{sel=r.dataset.id;list();detail()};r.onclick=go;r.onkeydown=e=>{if(e.key=="Enter"||e.key==" "){e.preventDefault();go()}}})}
+
+
+const MEAN={REPORT_REMAINING_RECORD:"A record that should have been removed is still stored here.",REPORT_EXPOSED_PII:"This record may be kept, but it still shows name, email, phone or an email hash.",REPORT_ACTIVE_DATA_FLOW:"A sync or import is still copying or recreating this user's data.",REPORT_RESTORE_RISK:"A backup or restore path could bring the deleted data back.",DISABLE_DATA_FLOW:"Switch off the sync or import so it stops copying the data.",BLOCK_RESTORE:"Stop this backup from restoring the user's data.",DELETE_RECORD:"Remove the whole record.",REDACT_RECORD:"Keep the record but strip out the identifying details.",ANONYMIZE_RECORD:"Keep the record but permanently break its link to the user.",VERIFY_RECORD_ABSENT:"After the fix, confirm the record is gone.",VERIFY_RECORD_PRESENT:"Confirm a record the company must legally keep is still there.",VERIFY_RECORD_REDACTED:"After the fix, confirm the identifying details are gone.",VERIFY_RECORD_ANONYMIZED:"After the fix, confirm the record can no longer be linked to the user.",VERIFY_DATA_FLOW_DISABLED:"After the fix, confirm the copying process is inactive.",VERIFY_RESTORE_BLOCKED:"After the fix, confirm the data cannot be restored."};
+const WHEN={FINDING:"Observed in the evidence at the audit time.",REMEDIATION:"A proposed action. Nothing has been changed yet.",VERIFICATION:"A check to run once the fix is done, or proof that a deletion is already finished."};
+function stepCard(x){const p=x.phase,json=esc(JSON.stringify(x));
+ return `<div class="step" style="--c:${PH[p]?PH[p].c:"#888"}" data-step='${json}'><div class="sh" role="button" tabindex="0" aria-expanded="false"><div class="op"><span class="n">${esc(x.step_no)}</span>${esc(OP[x.operation]||nice(x.operation))}</div><span class="chev" aria-hidden="true">▾</span></div>
+  <div class="raw">${esc(x.operation)}</div>
+  <div class="where"><span class="tag st">${esc(nice(x.state))}</span><span class="tag">${esc(x.system_id)}</span><span class="tag">${esc(x.resource_id)}</span>${x.evidence_id?`<span class="tag ev">${esc(x.evidence_id)}</span>`:""}</div>
+  <div class="more" hidden><p>${esc(MEAN[x.operation]||"")}</p><p class="mu2">${WHEN[p]||""}</p>
+   <dl><dt>Step number</dt><dd>${esc(x.step_no)}</dd><dt>System</dt><dd>${esc(x.system_id)}</dd><dt>Resource</dt><dd>${esc(x.resource_id)}</dd><dt>State</dt><dd>${esc(x.state)}</dd><dt>Evidence</dt><dd>${x.evidence_id?esc(x.evidence_id):"None yet. Checked after the fix."}</dd></dl>
+   <button class="nb copy">Copy step as JSON</button></div></div>`}
+function toggle(top){const st=top.parentElement,m=st.querySelector(".more"),o=m.hidden;m.hidden=!o;top.setAttribute("aria-expanded",o);st.classList.toggle("open",o)}
+document.addEventListener("click",e=>{const t=e.target.closest(".step .sh");if(t)toggle(t);
+ const cp=e.target.closest(".copy");if(cp){const j=JSON.stringify(JSON.parse(cp.closest(".step").dataset.step),null,2);(navigator.clipboard?navigator.clipboard.writeText(j):Promise.reject()).then(()=>cp.textContent="Copied",()=>cp.textContent="Copy not allowed here");setTimeout(()=>cp.textContent="Copy step as JSON",1500)}
+ if(e.target.id=="expall"){const tops=[...document.querySelectorAll(".step .sh")],open=tops.some(t=>t.getAttribute("aria-expanded")!="true");tops.forEach(t=>{if((t.getAttribute("aria-expanded")=="true")!=open)toggle(t)});e.target.textContent=open?"Collapse all":"Expand all"}});
+document.addEventListener("keydown",e=>{if((e.key=="Enter"||e.key==" ")&&e.target.matches(".step .sh")){e.preventDefault();toggle(e.target)}});
+function detail(){const c=cases.find(x=>x.case_id==sel),el=$("#detail");
+ if(!c){el.innerHTML='<div class="empty"><div class="disp">Pick a case</div>See what was found, how to fix it, and how to prove it worked.</div>';return}
+ const note={COMPLETE:"Deletion is finished. Every check below is backed by evidence.",INCOMPLETE:"Personal data remains or can return. Work through the plan left to right.",NOT_APPLICABLE:"Deletion was not requested or isn't authorised, so there is nothing to do."}[c.status];
+ const lanes=Object.keys(PH).map(p=>{const s=c.steps.filter(x=>x.phase==p);
+  return `<div class="lane"><h3>${PH[p].t}<span>${s.length}</span></h3><p>${PH[p].d}</p>`+(s.map(stepCard).join("")||'<p style="margin:8px 0 0">Nothing here.</p>')+`</div>`}).join("");
+ el.innerHTML=`<div class="dhead"><h2>${esc(c.case_id)}</h2><div class="nav"><span class="badge ${c.status}">${nice(c.status)}</span><button class="nb" id="expall">Expand all</button><button class="nb" id="prev">‹ Previous</button><button class="nb" id="next">Next ›</button></div></div><p class="dnote">${note}</p>`+(c.steps.length?`<div class="lanes">${lanes}</div>`:"")}
+function step(d){const i=vis.findIndex(c=>c.case_id==sel),n=vis[i+d];if(n){sel=n.case_id;list();detail()}}
+document.addEventListener("click",e=>{if(e.target.id=="prev")step(-1);if(e.target.id=="next")step(1)});
+async function status(){try{const s=await (await fetch("/api/status")).json(),b=$("#rerun");
+ if(!b)return;b.hidden=!s.can_rerun;b.disabled=s.running;b.textContent=s.running?"Audit running…":"Re-run audit";
+ const r=s.report;$("#runinfo").textContent=s.running?s.message:(s.finished?`${s.message} (${s.finished})`:(r&&r.total_seconds?`Last run: ${r.requests} cases, ${Math.round(r.total_seconds)}s, ${r.model_calls} model calls`:(s.from_rerun?"Showing latest re-run":"")));
+ if(s.running)setTimeout(status,3000);else if(window.__wasRunning){window.__wasRunning=false;const c=await (await fetch("/api/cases")).json();cases=c;render()}
+ window.__wasRunning=s.running}catch(e){}}
+document.addEventListener("click",async e=>{if(e.target.id=="rerun"){await fetch("/api/rerun",{method:"POST"});window.__wasRunning=true;status()}});
+setTimeout(status,300);
+init();
+</script></body></html>
